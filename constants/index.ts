@@ -1,9 +1,56 @@
+export const codeLinks = [
+  {
+    label: "Sunday",
+    route: "/generate/codes/sunday",
+  },
+  {
+    label: "Monday",
+    route: "/generate/codes/monday",
+  },
+  {
+    label: "Tuesday",
+    route: "/generate/codes/tuesay",
+  },
+  {
+    label: "Wednesday",
+    route: "/generate/codes/wednesday",
+  },
+  {
+    label: "Thursday",
+    route: "/generate/codes/thursday",
+  },
+  {
+    label: "Friday",
+    route: "/generate/codes/friday",
+  },
+  {
+    label: "Saturday",
+    route: "/generate/codes/saturday",
+  },
+];
+
+export const createLinks = [
+  {
+    label: "Codes",
+    route: "/generate/codes",
+  },
+  {
+    label: "Employees",
+    route: "/generate/employees",
+  },
+  {
+    label: "Groups",
+    route: "/generate/groups",
+  },
+];
+
 export const navLinks = [
   {
     label: "Home",
     route: "/",
     icon: "/assets/icons/home.svg",
   },
+  { label: "Codes", route: "/generate/codes/sunday" },
   {
     label: "Image Restore",
     route: "/transformations/add/restore",

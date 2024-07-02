@@ -6,6 +6,10 @@ import { NextResponse } from "next/server";
 import { Webhook } from "svix";
 
 import { createUser, deleteUser, updateUser } from "@/lib/actions/user.actions";
+import {
+  createOrganizationDB,
+  updateOrganizationDB,
+} from "@/lib/actions/organization.actions";
 
 export async function POST(req: Request) {
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the webhook
@@ -62,6 +66,15 @@ export async function POST(req: Request) {
     const { id, email_addresses, image_url, first_name, last_name, username } =
       evt.data;
 
+    const newOrgDB = await createOrganizationDB({});
+    const newOrgClerk = await clerkClient.organizations.createOrganization({
+      name: newOrgDB._id,
+      createdBy: id,
+    });
+
+    clerkClient.updateOrganizationDB(newOrgDB._id, newOrgClerk.id);
+    console.log("organization", newOrgClerk);
+
     const user = {
       clerkId: id,
       email: email_addresses[0].email_address,
@@ -69,19 +82,21 @@ export async function POST(req: Request) {
       firstName: first_name,
       lastName: last_name,
       photo: image_url,
+      organization_id: newOrgDB._id,
+      organization_clerkId: newOrgClerk.id,
     };
 
     const newUser = await createUser(user);
-
     // Set public metadata
     if (newUser) {
       await clerkClient.users.updateUserMetadata(id, {
         publicMetadata: {
           userId: newUser._id,
+          organization_id: newUser.organization_id,
+          organization_clerkId: newUser.organization_clerkId,
         },
       });
     }
-
     return NextResponse.json({ message: "OK", user: newUser });
   }
 
@@ -110,8 +125,31 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "OK", user: deletedUser });
   }
 
-  console.log(`Webhook with and ID of ${id} and type of ${eventType}`);
-  console.log("Webhook body:", body);
+  //   if (eventType === "organizationMembership.created") {
+  //     const { organization, public_user_data } = evt.data;
+  //     const user = {
+  //       organizationId: organization.id,
+  //     };
+  //     console.log(public_user_data.user_id, user);
 
-  return new Response("", { status: 200 });
+  //     const updatedUser = await updateUser(public_user_data.user_id, user);
+
+  //     return NextResponse.json({ message: "OK", user: updatedUser });
+  //   }
+
+  //   if (eventType === "organizationMembership.deleted") {
+  //     const { organization, public_user_data } = evt.data;
+  //     const user = {
+  //       organizationId: "",
+  //     };
+  //     console.log(public_user_data.user_id, user);
+
+  //     const updatedUser = await updateUser(public_user_data.user_id, user);
+
+  //     return NextResponse.json({ message: "OK", user: updatedUser });
+  //   }
+  //   console.log(`Webhook with and ID of ${id} and type of ${eventType}`);
+  //   console.log("Webhook body:", body);
+
+  //   return new Response("", { status: 200 });
 }

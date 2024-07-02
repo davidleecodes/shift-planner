@@ -1,7 +1,5 @@
 "use server";
 
-"use server";
-
 import { revalidatePath } from "next/cache";
 
 import User from "../database/models/user.model";
@@ -26,7 +24,9 @@ export async function getUserById(userId: string) {
   try {
     await connectToDatabase();
 
-    const user = await User.findOne({ clerkId: userId });
+    const user = await User.findOne({
+      $or: [{ _id: userId }, { clerkId: userId }],
+    });
 
     if (!user) throw new Error("User not found");
 
@@ -36,14 +36,37 @@ export async function getUserById(userId: string) {
   }
 }
 
-// UPDATE
-export async function updateUser(clerkId: string, user: UpdateUserParams) {
+//Get all org memebers
+export async function getAllOrgUsers(OrgId: string) {
   try {
     await connectToDatabase();
 
-    const updatedUser = await User.findOneAndUpdate({ clerkId }, user, {
+    const users = await User.find({ organization_clerkId: OrgId });
+
+    if (!users) throw new Error("User not found");
+
+    return JSON.parse(JSON.stringify(users));
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+// UPDATE
+export async function updateUser(
+  id: string,
+  user: UpdateUserParams | { organizationId: string }
+) {
+  try {
+    await connectToDatabase();
+
+    let updatedUser = await User.findOneAndUpdate({ clerkId: id }, user, {
       new: true,
     });
+    if (!updatedUser) {
+      updatedUser = await User.findOneAndUpdate({ _id: id }, user, {
+        new: true,
+      });
+    }
 
     if (!updatedUser) throw new Error("User update failed");
 
@@ -55,6 +78,7 @@ export async function updateUser(clerkId: string, user: UpdateUserParams) {
 
 // DELETE
 export async function deleteUser(clerkId: string) {
+  console.log("delclerkId", clerkId);
   try {
     await connectToDatabase();
 

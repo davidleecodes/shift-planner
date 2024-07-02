@@ -1,5 +1,10 @@
 /* eslint-disable no-unused-vars */
 
+// ====== ORGANIZATION PARAMS
+declare type CreateOrganizationDBParams = {
+  clerkId?: string;
+};
+
 // ====== USER PARAMS
 declare type CreateUserParams = {
   clerkId: string;
@@ -8,6 +13,8 @@ declare type CreateUserParams = {
   firstName: string;
   lastName: string;
   photo: string;
+  organization_id: string;
+  organization_clerkId: string;
 };
 
 declare type UpdateUserParams = {
