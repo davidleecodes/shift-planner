@@ -7,7 +7,15 @@ import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-const SideNav = ({ navLinks, addLabel, onAddItem }) => {
+const SideNav = ({
+  navLinks,
+  addLabel,
+  onAddItem,
+}: {
+  navLinks: string[];
+  addLabel: string;
+  onAddItem: ({ name: string }) => {};
+}) => {
   const pathname = usePathname();
   const [newItemName, setNewItemName] = useState("");
 

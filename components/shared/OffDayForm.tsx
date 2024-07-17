@@ -27,28 +27,45 @@ import { DatePickerWithRange } from "./DateRangePicker";
 const codeEnum = ["v", "h", "e"] as const;
 const formSchema = z.object({
   offDate: z.object({
-    from: z.date(),
-    to: z.date(),
-    code: z.enum(codeEnum),
+    dateRange: z
+      .object(
+        {
+          from: z.date(),
+          to: z.date().optional(),
+        },
+        { required_error: "Date is required." }
+      )
+      .refine((dateRange) => {
+        return !!dateRange.to;
+      }, "End Date is required."),
+
+    code: z.enum(codeEnum, {
+      errorMap: () => ({ message: "Code is Required." }),
+    }),
   }),
 });
 
-export function OffDayForm({ addFunc }) {
+export function OffDayForm({
+  addFunc,
+}: {
+  addFunc: (offDay: {
+    code: "v" | "h" | "e";
+    dateRange: { from?: Date ; to?: Date  };
+  }) => {};
+}) {
   // 1. Define your form.
   const formA = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       offDate: {
-        from: "",
-        to: "",
-        code: "",
+        // code: "",
       },
     },
   });
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>, event) {
-    console.log(event);
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    // console.log(event);
     // event.preventDefault();
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
@@ -60,8 +77,19 @@ export function OffDayForm({ addFunc }) {
   return (
     <Form {...formA}>
       {/* <form onSubmit={formA.handleSubmit(onSubmit)} className="space-y-8"> */}
-      <div>
-        <DatePickerWithRange form={formA} name={`offDate`} />
+      {/* <DatePickerWithRange form={formA} name={`offDate.dateRange`} /> */}
+
+      <div className="flex gap-2">
+        <FormField
+          control={formA.control}
+          name={`offDate.dateRange`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>date</FormLabel>
+              <DatePickerWithRange form={formA} name={`offDate.dateRange`} />
+            </FormItem>
+          )}
+        />
         <FormField
           control={formA.control}
           name={`offDate.code`}
@@ -71,7 +99,7 @@ export function OffDayForm({ addFunc }) {
               <FormControl>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger className="select-field">
-                    <SelectValue placeholder="Select size" />
+                    <SelectValue placeholder="Select code" />
                   </SelectTrigger>
                   <SelectContent>
                     {codeEnum.map((key) => (
@@ -87,10 +115,15 @@ export function OffDayForm({ addFunc }) {
             </FormItem>
           )}
         />
+
+        <FormItem>
+          <FormLabel className="block my-1 invisible">code</FormLabel>
+          <Button onClick={formA.handleSubmit(onSubmit)}>add</Button>
+        </FormItem>
       </div>
 
       {/* <Button type="submit">add</Button> */}
-      <Button onClick={formA.handleSubmit(onSubmit)}>add</Button>
+
       {/* </form> */}
     </Form>
   );

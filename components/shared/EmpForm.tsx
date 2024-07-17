@@ -1,7 +1,7 @@
 "use client";
 import { createPortal } from "react-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Field } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,13 +25,22 @@ import {
 import { DatePickerWithRange } from "./DateRangePicker";
 import { OffDayForm } from "./OffDayForm";
 import { useRef } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { SquareDashedBottom, PackageOpen } from "lucide-react";
 
 const shiftEnum = ["normal", "always", "never"] as const;
 const shiftDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const codeEnum = ["v", "h", "e"] as const;
 const formSchema = z.object({
   firstName: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: "Username must be at least 2 cha.",
   }),
   lastName: z.string().min(2, {
     message: "Username must be at least 2 characters.",
@@ -50,14 +59,23 @@ const formSchema = z.object({
   }),
   offDates: z.array(
     z.object({
-      from: z.date(),
-      to: z.date(),
+      dateRange: z
+        .object(
+          {
+            from: z.date(),
+            to: z.date().optional(),
+          },
+          { required_error: "Date is required." }
+        )
+        .refine((dateRange) => {
+          return !!dateRange.to;
+        }, "End Date is required."),
       code: z.enum(codeEnum),
     })
   ),
 });
 
-export function EmpForm({ employee }) {
+export function EmpForm({ employee }: { employee: UserParams }) {
   // console.log(employee);
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
@@ -67,13 +85,13 @@ export function EmpForm({ employee }) {
       lastName: employee.lastName || "",
       username: employee.username || "",
       shiftDays: {
-        Mon: employee.shiftDays?.Mon || "normal",
-        Tue: employee.shiftDays?.Tue || "normal",
-        Wed: employee.shiftDays?.Wed || "normal",
-        Thu: employee.shiftDays?.Thu || "normal",
-        Fri: employee.shiftDays?.Fri || "normal",
-        Sat: employee.shiftDays?.Sat || "normal",
-        Sun: employee.shiftDays?.Sun || "normal",
+        Mon: employee.shiftDays?.Mon || shiftEnum[0],
+        Tue: employee.shiftDays?.Tue || shiftEnum[0],
+        Wed: employee.shiftDays?.Wed || shiftEnum[0],
+        Thu: employee.shiftDays?.Thu || shiftEnum[0],
+        Fri: employee.shiftDays?.Fri || shiftEnum[0],
+        Sat: employee.shiftDays?.Sat || shiftEnum[0],
+        Sun: employee.shiftDays?.Sun || shiftEnum[0],
       },
       offDates: [],
     },
@@ -85,7 +103,7 @@ export function EmpForm({ employee }) {
   });
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>, event) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     // event.preventDefault();
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
@@ -93,134 +111,174 @@ export function EmpForm({ employee }) {
     updateUser(employee._id, values);
   }
   const portalRef = useRef(null);
-  // const portalRef = (element) => {
-  //   if (element !== null) {
-  //     createPortal(<span>Hello!</span>, element);
-  //   }
-  // };
-  const sidebarContentEl = document.getElementById("sidebar-content");
+  const shiftDaysArray = [
+    "shiftDays.Mon",
+    "shiftDays.Tue",
+    "shiftDays.Wed",
+    "shiftDays.Thu",
+    "shiftDays.Fri",
+    "shiftDays.Sat",
+    "shiftDays.Sun",
+  ] as const;
+
+  // const shiftDaysArray = shiftEnum.map((day) => `shiftDays.${day}`) as const;
+
   return (
     <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-            control={form.control}
-            name="firstName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>first name</FormLabel>
-                <FormControl>
-                  <Input placeholder="shadcn" {...field} />
-                </FormControl>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="lastName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>last name</FormLabel>
-                <FormControl>
-                  <Input placeholder="shadcn" {...field} />
-                </FormControl>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Username</FormLabel>
-                <FormControl>
-                  <Input placeholder="shadcn" {...field} />
-                </FormControl>
-                <FormDescription>
-                  This is your public display name.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {shiftDays.map((day) => (
+          <div className="grid grid-cols-2 gap-4">
             <FormField
-              key={day}
               control={form.control}
-              name={`shiftDays.${day}`}
+              name="firstName"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{day}</FormLabel>
+                <FormItem className="">
+                  <FormLabel>first name</FormLabel>
                   <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="select-field">
-                        <SelectValue placeholder="Select size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {shiftEnum.map((key) => (
-                          <SelectItem
-                            key={key}
-                            value={key}
-                            className="select-item"
-                          >
-                            {key}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input placeholder="first name" {...field} />
                   </FormControl>
 
                   <FormMessage />
                 </FormItem>
               )}
             />
-          ))}
-          {fields.map((field, index) => (
-            <div key={field.id}>
-              <DatePickerWithRange form={form} name={`offDates.${index}`} />
-              <FormField
-                control={form.control}
-                name={`offDates.${index}.code`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>code</FormLabel>
-                    <FormControl>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="select-field">
-                          <SelectValue placeholder="Select size" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {codeEnum.map((key) => (
-                            <SelectItem
-                              key={key}
-                              value={key}
-                              className="select-item"
-                            >
-                              {key}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel>last name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="last name" {...field} />
+                  </FormControl>
 
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <button type="button" onClick={() => remove(index)}>
-                Delete
-              </button>
-            </div>
-          ))}
-          <div ref={portalRef} id="sidebar-content" />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input placeholder="user name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="grid grid-cols-5 gap-4">
+            {shiftDaysArray.map((day) => {
+              return (
+                <FormField
+                  key={day}
+                  control={form.control}
+                  name={day}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{day.split(".")[1]}</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger className="select-field">
+                            <SelectValue placeholder="Select size" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {shiftEnum.map((key) => (
+                              <SelectItem
+                                key={key}
+                                value={key}
+                                className="select-item"
+                              >
+                                {key}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              );
+            })}
+          </div>
+
           <OffDayForm addFunc={append} />
+
+          <Card className="flex justify-center grow min-h-52">
+            <CardContent className="  flex justify-center p-6 w-full">
+              {fields.length === 0 && (
+                <div className="self-center">
+                  <PackageOpen size={64} absoluteStrokeWidth={true} />
+                  <p className=" text-center">no data</p>
+                </div>
+              )}
+              {fields.map((field, index) => (
+                <div key={field.id} className="flex gap-2">
+                  <FormField
+                    control={form.control}
+                    name={`offDates.${index}.dateRange`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>date</FormLabel>
+                        <DatePickerWithRange
+                          form={form}
+                          name={`offDates.${index}.dateRange`}
+                        />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`offDates.${index}.code`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>code</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="select-field">
+                              <SelectValue placeholder="Select code" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {codeEnum.map((key) => (
+                                <SelectItem
+                                  key={key}
+                                  value={key}
+                                  className="select-item"
+                                >
+                                  {key}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormItem>
+                    <FormLabel className="block my-1 invisible">code</FormLabel>
+                    <Button type="button" onClick={() => remove(index)}>
+                      Delete
+                    </Button>
+                  </FormItem>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+          <div ref={portalRef} id="sidebar-content" />
+
           <Button type="submit">Submit</Button>
         </form>
       </Form>

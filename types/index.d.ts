@@ -5,7 +5,29 @@ declare type CreateOrganizationDBParams = {
   clerkId?: string;
 };
 
+declare type shiftType = "normal" | "always" | "never";
 // ====== USER PARAMS
+declare type UserParams = {
+  _id: string;
+  clerkId: string;
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  photo: string;
+  organization_id: string;
+  organization_clerkId: string;
+  shiftDays: {
+    Mon: shiftType;
+    Tue: shiftType;
+    Wed: shiftType;
+    Thu: shiftType;
+    Fri: shiftType;
+    Sat: shiftType;
+    Sun: shiftType;
+  };
+};
+
 declare type CreateUserParams = {
   clerkId: string;
   email: string;
@@ -21,7 +43,7 @@ declare type UpdateUserParams = {
   firstName: string;
   lastName: string;
   username: string;
-  photo: string;
+  photo?: string;
 };
 
 // ====== IMAGE PARAMS

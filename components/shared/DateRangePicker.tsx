@@ -23,6 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 
 export function DatePickerWithRange({ form, name }) {
   return (
@@ -31,6 +32,7 @@ export function DatePickerWithRange({ form, name }) {
       name={name}
       render={({ field }) => (
         <FormItem className="flex flex-col">
+          {console.log(field)}
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>
@@ -38,10 +40,10 @@ export function DatePickerWithRange({ form, name }) {
                   variant={"outline"}
                   className={cn(
                     "w-[240px] pl-3 text-left font-normal",
-                    !field.value.from && "text-muted-foreground"
+                    !field.value?.from && "text-muted-foreground"
                   )}
                 >
-                  {field?.value.from ? (
+                  {field?.value?.from ? (
                     field.value.to ? (
                       <>
                         {format(field.value.from, "LLL dd, y")} -{" "}

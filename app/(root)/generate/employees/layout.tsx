@@ -3,7 +3,7 @@ import EmpSideNav from "@/components/shared/EmpSideNav";
 import { auth } from "@clerk/nextjs";
 import { getAllOrgUsers } from "@/lib/actions/user.actions";
 
-async function loadLinks(orgId) {
+async function loadLinks(orgId: string) {
   const res = await getAllOrgUsers(orgId);
   const employeeLinks = res.map((employee) => ({
     label:
